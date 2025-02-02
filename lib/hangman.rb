@@ -1,7 +1,7 @@
-puts "HIIII"
 
 module Includable
   AlPHABETS = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"]
+  @@count = 8
 end
 
 class Board
@@ -14,9 +14,7 @@ class Board
   def initialize
     @random_words = []
     @secret_word = []
-    @count = 0
     @board = []
-    @player = Player.new
     @player_code = ""
   end
 
@@ -46,16 +44,18 @@ class Board
   end
   
   def check_codes?
+    puts "What's your guess?"
     @player_code = gets.chomp
     if @secret_word.include?@player_code
-      p @player_code.class
+      @@count = @@count
       index = @secret_word.each_with_index.select{|c, i| c == @player_code}.map(&:last)
       index.each do |i|
         @board[i] = @player_code
         update_alphabet_list()
       end
     else
-       puts "Incorrect Guess"
+      @@count -= 1
+      puts "Incorrect Guess"
     end
     display_board
   end
@@ -64,29 +64,57 @@ class Board
     AlPHABETS.map!{|x| x == @player_code ? "#" : x}
   end
 
+  def compare_codes
+    @secret_word == @board ? true : false
+  end
+  
 end
 
 class Player
 
-  attr_accessor :player_guess
-  def initialize
-    puts "Let's have your name!"
-    @player_name = gets.chomp
-    @player_guess = "a"
+  attr_accessor :name
+  def initialize(name)
+    @name = name
   end
-  
-  def get_player_guess
-    @player_guess = gets.chomp
-    @player_guess.downcase!
-  end
-  
 end
 
-board = Board.new
 
+class Game
+  
+  include Includable
 
-board.words_of_five_and_twelve
-board.select_rand_word
-board.create_board
-board.display_board
-board.check_codes?
+  def initialize
+    puts "Lets start a new game"
+    names = gets.chomp
+    @player = Player.new(names)
+    puts @player
+    @g_board = Board.new
+  end
+   
+  puts 
+  def announce_winner
+    if (@g_board.compare_codes)
+     puts "Congratulations #{@player.name}!!! You actually guessed it right"
+    else
+     puts "Sorry #{@player.name} Try again"
+     puts @player.name.ancestors
+    end
+  end
+  
+  def game_play
+    @g_board.words_of_five_and_twelve
+    @g_board.select_rand_word
+    @g_board.create_board
+    @g_board.display_board
+    until @@count == 0 || @g_board.compare_codes do   
+      @g_board.check_codes?
+      puts "You have #{@@count} out of 8 counts left"
+    end
+    announce_winner()
+  end
+end
+game = Game.new
+game.game_play
+#board.words_of_five_and_twelve
+#board.select_rand_word
+#board.check_codes?
