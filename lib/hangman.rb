@@ -105,7 +105,7 @@ class Game
     answer = gets.chomp
     case answer.downcase!
     when "yes" || "Y" || "y"
-      Game.load_game
+      Game.deserialize
     when "no" || "n" || "n"
         @g_board.words_of_five_and_twelve
         @g_board.select_rand_word
@@ -120,7 +120,19 @@ class Game
         puts "Incorrect input"
     end
   end
-  
+
+  def serialize
+    puts "Enter desired name for your file"
+    file_name = gets.chomp.strip
+    File.open("lib/#{file_name}.yaml", "w") do |file|
+      file.write(YAML.dump(self))
+      puts "Game successfully saved"
+    end
+  end
+
+  def deserialize
+  end
+
 end
 
 game = Game.new
