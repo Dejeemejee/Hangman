@@ -1,4 +1,3 @@
-
 module Includable
   AlPHABETS = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"]
   @@count = 8
@@ -39,8 +38,8 @@ class Board
   end
 
   def display_board
-    p @board
     p AlPHABETS 
+    p @board
   end
   
   def check_codes?
@@ -57,6 +56,7 @@ class Board
       @@count -= 1
       puts "Incorrect Guess"
     end
+    puts "\n"
     display_board
   end
 
@@ -84,10 +84,9 @@ class Game
   include Includable
 
   def initialize
-    puts "Lets start a new game"
-    names = gets.chomp
-    @player = Player.new(names)
-    puts @player
+    puts "Welcome to Hangman. Lets have your name!!!!"
+    name = gets.chomp
+    @player = Player.new(name)
     @g_board = Board.new
   end
    
@@ -97,22 +96,33 @@ class Game
      puts "Congratulations #{@player.name}!!! You actually guessed it right"
     else
      puts "Sorry #{@player.name} Try again"
-     puts @player.name.ancestors
+     #puts @player.name.ancestors
     end
   end
   
   def game_play
-    @g_board.words_of_five_and_twelve
-    @g_board.select_rand_word
-    @g_board.create_board
-    @g_board.display_board
-    until @@count == 0 || @g_board.compare_codes do   
-      @g_board.check_codes?
-      puts "You have #{@@count} out of 8 counts left"
+    puts "Do you want to load a saved game? (yes/no)"
+    answer = gets.chomp
+    case answer.downcase!
+    when "yes" || "Y" || "y"
+      Game.load_game
+    when "no" || "n" || "n"
+        @g_board.words_of_five_and_twelve
+        @g_board.select_rand_word
+        @g_board.create_board
+        @g_board.display_board
+        until @@count == 0 || @g_board.compare_codes do   
+          @g_board.check_codes?
+          puts "You have #{@@count} out of 8 counts left"
+        end
+        announce_winner()
+    else 
+        puts "Incorrect input"
     end
-    announce_winner()
   end
+  
 end
+
 game = Game.new
 game.game_play
 #board.words_of_five_and_twelve
