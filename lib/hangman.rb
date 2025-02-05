@@ -43,22 +43,32 @@ class Board
   end
   
   def check_codes?
-    puts "What's your guess?"
-    @player_code = gets.chomp
-    if @secret_word.include?@player_code
-      @@count = @@count
-      index = @secret_word.each_with_index.select{|c, i| c == @player_code}.map(&:last)
-      index.each do |i|
-        @board[i] = @player_code
-        update_alphabet_list()
+    puts "Do you want to load a saved game? (yes/no)"
+    answer = gets.chomp.strip
+    case answer.downcase!
+    when "yes" || "Y" || "y"
+      Board.deserialize
+    when "no" || "n" || "n"
+      puts "What's your guess?"
+      @player_code = gets.chomp
+      if @secret_word.include?@player_code
+        @@count = @@count
+        index = @secret_word.each_with_index.select{|c, i| c == @player_code}.map(&:last)
+        index.each do |i|
+          @board[i] = @player_code
+          update_alphabet_list()
+        end
+      else
+        @@count -= 1
+        puts "Incorrect Guess"
       end
+      puts "\n"
+      display_board
     else
-      @@count -= 1
-      puts "Incorrect Guess"
+      puts "Invalid input"
     end
-    puts "\n"
-    display_board
   end
+
 
   def update_alphabet_list
     AlPHABETS.map!{|x| x == @player_code ? "#" : x}
@@ -66,6 +76,38 @@ class Board
 
   def compare_codes
     @secret_word == @board ? true : false
+  end
+
+  def self.serialize
+    puts "Enter desired name for your file"
+    file_name = gets.chomp.strip
+    File.open("saved_games/#{file_name}.yaml", "w") do |file|
+      file.write(YAML.dump(self))
+      puts "Game successfully saved"
+    end
+  end
+
+  def self.deserialize
+    saved_files = Dir["lib/*.yaml"]
+    if saved_files.empty?
+      puts "No saved game"
+      return nil
+    else 
+      puts "Choose the saved game you intend to load: "
+      saved_files.each_with_index do |file, index|
+        puts "#{index + 1}. #{File.basename(file, ".yaml")}"
+      end
+
+      choice = gets.chomp.to_i - 1
+      if choice.between?(0, saved_files.length - 1)
+        game_data = YAML.load_file(saved_files[choice])
+        puts "Game Loaded successfully!"
+        return game_data
+      else
+        puts "Invalid choice. Starting a new game instead"
+        return nil
+      end
+    end
   end
   
 end
@@ -90,7 +132,7 @@ class Game
     @g_board = Board.new
   end
    
-  puts 
+   
   def announce_winner
     if (@g_board.compare_codes)
      puts "Congratulations #{@player.name}!!! You actually guessed it right"
@@ -101,42 +143,23 @@ class Game
   end
   
   def game_play
-    puts "Do you want to load a saved game? (yes/no)"
-    answer = gets.chomp
-    case answer.downcase!
-    when "yes" || "Y" || "y"
-      Game.deserialize
-    when "no" || "n" || "n"
-        @g_board.words_of_five_and_twelve
-        @g_board.select_rand_word
-        @g_board.create_board
-        @g_board.display_board
-        until @@count == 0 || @g_board.compare_codes do   
-          @g_board.check_codes?
-          puts "You have #{@@count} out of 8 counts left"
-        end
-        announce_winner()
-    else 
-        puts "Incorrect input"
-    end
-  end
-
-  def serialize
-    puts "Enter desired name for your file"
-    file_name = gets.chomp.strip
-    File.open("lib/#{file_name}.yaml", "w") do |file|
-      file.write(YAML.dump(self))
-      puts "Game successfully saved"
-    end
-  end
-
-  def deserialize
+    Dir.mkdir("saved_games") unless Dir.exist?("saved_games")
+      @g_board.words_of_five_and_twelve
+      @g_board.select_rand_word
+      @g_board.create_board
+      @g_board.display_board
+      until @@count == 0 || @g_board.compare_codes do   
+        @g_board.check_codes?
+        puts "You have #{@@count} out of 8 counts left"
+      end
+    announce_winner()
   end
 
 end
 
 game = Game.new
 game.game_play
+
 #board.words_of_five_and_twelve
 #board.select_rand_word
 #board.check_codes?
