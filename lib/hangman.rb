@@ -1,3 +1,5 @@
+require 'yaml'
+
 module Includable
   AlPHABETS = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"]
   @@count = 8
@@ -9,7 +11,7 @@ class Board
   @@file_of_words = 'google-10000-english-no-swears.txt'
   
   #puts AlPHABETS
-  attr_accessor :secret_word, :random_words, :board, :player_code
+  attr_accessor :secret_word, :random_words, :board, :player_code, :AlPHABETS
   def initialize
     @random_words = []
     @secret_word = []
@@ -42,15 +44,14 @@ class Board
     p @board
   end
   
+
   def check_codes?
-    puts "Do you want to load a saved game? (yes/no)"
-    answer = gets.chomp.strip
-    case answer.downcase!
-    when "yes" || "Y" || "y"
-      Board.deserialize
-    when "no" || "n" || "n"
-      puts "What's your guess?"
-      @player_code = gets.chomp
+    puts "\nEnter a letter to guess (or type 'save' to save the game):"
+    input = gets.chomp.strip
+    if input.downcase == "save"
+      Board.serialize
+    elsif input.match?(/^[a-zA-Z]$/)
+      @player_code = input
       if @secret_word.include?@player_code
         @@count = @@count
         index = @secret_word.each_with_index.select{|c, i| c == @player_code}.map(&:last)
@@ -65,7 +66,7 @@ class Board
       puts "\n"
       display_board
     else
-      puts "Invalid input"
+      puts "Invalid input. Please enter a single letter or the word 'save'. Thanks"
     end
   end
 
@@ -82,12 +83,13 @@ class Board
     puts "Enter desired name for your file"
     file_name = gets.chomp.strip
     File.open("saved_games/#{file_name}.yaml", "w") do |file|
-      file.write(YAML.dump(self))
+      yaml = YAML::dump(self)
+      file.write(yaml)
       puts "Game successfully saved"
     end
   end
 
-  def self.deserialize
+  def deserialize
     saved_files = Dir["lib/*.yaml"]
     if saved_files.empty?
       puts "No saved game"
@@ -97,7 +99,6 @@ class Board
       saved_files.each_with_index do |file, index|
         puts "#{index + 1}. #{File.basename(file, ".yaml")}"
       end
-
       choice = gets.chomp.to_i - 1
       if choice.between?(0, saved_files.length - 1)
         game_data = YAML.load_file(saved_files[choice])
@@ -144,6 +145,11 @@ class Game
   
   def game_play
     Dir.mkdir("saved_games") unless Dir.exist?("saved_games")
+    puts "Enter 1 to load a saved game or 2 to start a new game"
+    answer = gets.chomp.strip.to_i
+    if answer == 1
+      @g_board.deserialize
+    else
       @g_board.words_of_five_and_twelve
       @g_board.select_rand_word
       @g_board.create_board
@@ -152,14 +158,16 @@ class Game
         @g_board.check_codes?
         puts "You have #{@@count} out of 8 counts left"
       end
-    announce_winner()
+      announce_winner()
+    end
   end
 
 end
 
+
+# board = Board.new
+# board.words_of_five_and_twelve
+
 game = Game.new
 game.game_play
 
-#board.words_of_five_and_twelve
-#board.select_rand_word
-#board.check_codes?
