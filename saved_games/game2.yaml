@@ -1,0 +1,19 @@
+---
+secret_word:
+- c
+- e
+- "n"
+- t
+- r
+- a
+- l
+board:
+- c
+- e
+- _
+- _
+- _
+- _
+- _
+player_code: c
+count:

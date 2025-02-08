@@ -1,0 +1,25 @@
+---
+secret_word:
+- i
+- "n"
+- f
+- l
+- u
+- e
+- "n"
+- c
+- e
+- d
+board:
+- i
+- "n"
+- _
+- _
+- u
+- e
+- "n"
+- c
+- e
+- _
+player_code: i
+count: 8

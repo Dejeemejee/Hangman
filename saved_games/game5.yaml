@@ -1,0 +1,19 @@
+---
+secret_word:
+- p
+- r
+- o
+- d
+- u
+- c
+- t
+board:
+- p
+- r
+- o
+- d
+- u
+- c
+- _
+player_code: c
+count: 6
