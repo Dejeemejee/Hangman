@@ -49,7 +49,7 @@ class Board
     puts "\nEnter a letter to guess (or type 'save' to save the game):"
     input = gets.chomp.strip
     if input.downcase == "save"
-      Board.serialize
+      serialize()
     elsif input.match?(/^[a-zA-Z]$/)
       @player_code = input
       if @secret_word.include?@player_code
@@ -79,18 +79,25 @@ class Board
     @secret_word == @board ? true : false
   end
 
-  def self.serialize
+  def serialize
     puts "Enter desired name for your file"
     file_name = gets.chomp.strip
     File.open("saved_games/#{file_name}.yaml", "w") do |file|
-      yaml = YAML::dump(self)
-      file.write(yaml)
+      game_state = {
+        # 'random_words' => @random_words,
+        'secret_word' => @secret_word,
+        'board' => @board,
+        'player_code' => @player_code,
+        'count' => @@count
+      }
+      file.write(YAML.dump(game_state))
       puts "Game successfully saved"
     end
   end
 
   def deserialize
-    saved_files = Dir["lib/*.yaml"]
+    saved_files = Dir["saved_games/*.yaml"]
+    puts saved_files
     if saved_files.empty?
       puts "No saved game"
       return nil
@@ -103,7 +110,10 @@ class Board
       if choice.between?(0, saved_files.length - 1)
         game_data = YAML.load_file(saved_files[choice])
         puts "Game Loaded successfully!"
-        return game_data
+         @secret_word = game_data["secret_word"] 
+        p @board = game_data["board"] 
+         @player_code = game_data["player_code"] 
+        p @@count = game_data["count"]
       else
         puts "Invalid choice. Starting a new game instead"
         return nil
@@ -149,6 +159,11 @@ class Game
     answer = gets.chomp.strip.to_i
     if answer == 1
       @g_board.deserialize
+      until @@count == 0 || @g_board.compare_codes do   
+        @g_board.check_codes?
+        puts "You have #{@@count} out of 8 counts left"
+      end
+      announce_winner()
     else
       @g_board.words_of_five_and_twelve
       @g_board.select_rand_word
@@ -164,9 +179,6 @@ class Game
 
 end
 
-
-# board = Board.new
-# board.words_of_five_and_twelve
 
 game = Game.new
 game.game_play
